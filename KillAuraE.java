@@ -1,37 +1,22 @@
-
-
 @CheckInfo(
-        type = CheckType.KILL_AURA,
-        subType = "E",
-        version = CheckVersion.RELEASE,
-        minViolations = -1.0D,
-        unsupportedAtleast = ClientVersion.V1_9,
-        unsupportedServerAtleast = ServerVersion.v1_17_R1
+   type = CheckType.KILL_AURA,
+   subType = "E",
+   friendlyName = "Kill Aura",
+   version = CheckVersion.RELEASE,
+   disableHigherVersions = true,
+   description = "Invalid sword blocking"
 )
-public class KillAuraO2 extends Check implements PacketHandler {
-    private int entityId, ticks;
+public class KillAuraE extends PacketCheck {
+   private boolean place = false;
 
-  
-    }
+   public void handle(VPacket vPacket, long n) {
+      if (vPacket instanceof VPacketPlayInFlying) {
+         this.place = false;
+      } else if (vPacket instanceof VPacketPlayInBlockPlace) {
+         this.place = true;
+      } else if (vPacket instanceof VPacketPlayInUseEntity && this.place && ((VPacketPlayInUseEntity)vPacket).getAction() == VPacketPlayInUseEntity.EntityUseAction.ATTACK) {
+         this.handleViolation("", 1.0D, true);
+      }
 
-    public void handle(VPacketPlayInUseEntity vPacket) {
-        if (vPacket.getAction().isAttack() && vPacket.isPlayer()) {
-            int packetId = vPacket.getId();
-            if (this.entityId == packetId) {
-                this.decreaseVL(0.05D);
-            } else {
-                if (this.ticks <= 1 && this.playerData.isSurvival()) {
-                    this.handleViolation();
-                } else {
-                    this.decreaseVL(0.05D);
-                }
-                this.ticks = 0;
-            }
-            this.entityId = packetId;
-        }
-    }
-
-    public void handle(VPacketPlayInFlying vPacket) {
-        this.ticks += 1;
-    }
+   }
 }
